@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0b2d6b" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" href="./icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="./icon.svg" />
+<title>월급달력</title>
+<style>
+:root{
+  --bg:#f4f6f9;--card:#fff;--text:#101828;--muted:#667085;--line:#e8ecf2;
+  --dark:#111827;--blue:#2563eb;--red:#ef4444;--green:#16a34a;--soft:#f8fafc;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+.app{width:min(100%,430px);min-height:100vh;margin:auto;padding:18px 14px 42px}
+.top{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 14px}
+.brand-wrap{display:flex;align-items:center;gap:11px}.app-icon{width:42px;height:42px;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,.14)}
+.brand small{display:block;color:var(--muted);font-size:12px;font-weight:700;margin-bottom:3px}
+.brand h1{font-size:24px;line-height:1.1;margin:0;letter-spacing:-.05em}
+.badge{padding:8px 11px;border-radius:999px;background:#e8eefc;color:#1d4ed8;font-size:12px;font-weight:800}
+.hero{background:linear-gradient(145deg,#111827,#293548);color:#fff;border-radius:24px;padding:22px;box-shadow:0 18px 45px rgba(17,24,39,.15)}
+.hero-head{display:flex;justify-content:space-between;align-items:center;color:#cbd5e1;font-size:12px}
+.hero-amount{display:block;font-size:34px;letter-spacing:-.06em;margin:9px 0 3px}
+.hero-note{color:#aab4c3;font-size:11px}
+.hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:18px}
+.hero-grid div{background:rgba(255,255,255,.08);border-radius:13px;padding:10px 5px;text-align:center}
+.hero-grid span,.hero-grid b{display:block}
+.hero-grid span{font-size:10px;color:#cbd5e1;margin-bottom:4px}.hero-grid b{font-size:13px}
+.card{background:var(--card);border-radius:22px;padding:17px;margin-top:12px;box-shadow:0 7px 24px rgba(15,23,42,.05)}
+.cal-head{display:flex;align-items:center;justify-content:space-between}
+.cal-title{text-align:center}.cal-title h2{margin:0;font-size:18px;letter-spacing:-.04em}.cal-title p{margin:4px 0 0;color:var(--muted);font-size:11px}
+.nav{width:38px;height:38px;border:0;border-radius:12px;background:#f1f4f8;color:#344054;font-size:23px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);margin:17px 0 7px;color:#98a2b3;font-size:11px;text-align:center}.sun{color:#e5484d}.sat{color:#2e6bd9}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day{position:relative;aspect-ratio:1/1.05;border:1px solid transparent;border-radius:12px;background:#fafbfc;color:#98a2b3;padding:6px;text-align:left;font-size:12px;font-weight:750}
+.day.blank{visibility:hidden}.day.normal{opacity:.5}.day.workday{background:#f7f9fd;color:#344054;border-color:#dbe4f4}.day.public{background:#fff5f5;color:#d92d20;border-color:#ffd8d8}
+.day.selected::after{content:"✓";position:absolute;right:5px;bottom:5px;width:17px;height:17px;border-radius:50%;display:grid;place-items:center;background:#111827;color:#fff;font-size:10px}
+.day.off{opacity:.33;text-decoration:line-through}.day .tag{position:absolute;left:5px;right:5px;bottom:4px;font-size:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:10px}.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px}.dot.work{background:#111827}.dot.off{background:#cbd5e1}.dot.pub{background:#ef4444}
+.section-head{display:flex;justify-content:space-between;align-items:center}.section-head h2{margin:0;font-size:17px}.link{border:0;background:transparent;color:#2563eb;font-size:11px;font-weight:800}
+.row{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid var(--line);font-size:13px}.row:last-child{border-bottom:0}.row.total{padding-top:16px;font-size:15px}.row span em{font-style:normal;color:var(--muted);font-size:10px;margin-left:4px}.deduct-input{width:110px;border:0;background:#f4f6f9;border-radius:10px;padding:9px 10px;text-align:right;font-weight:800;color:#344054;outline:none}.deduct-input:focus{box-shadow:0 0 0 2px #dbe7ff}.net{font-size:17px;color:#111827}
+.notice{margin-top:12px;padding:12px 13px;border-radius:14px;background:#f8fafc;color:#667085;font-size:10px;line-height:1.5}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.btn{border:0;border-radius:15px;padding:14px;font-weight:850}.btn.secondary{background:#fff;color:#344054;box-shadow:0 5px 20px rgba(15,23,42,.05)}.btn.primary{background:#111827;color:#fff}
+.sheet-modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(15,23,42,.58);padding:16px;overflow:auto}.sheet-modal.open{display:block}.sheet-wrap{width:min(1120px,100%);margin:20px auto;background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.28);overflow:hidden}.sheet-toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:14px 16px;background:#f8fafc;border-bottom:1px solid #e5e7eb}.sheet-toolbar .left{display:flex;align-items:center;gap:9px;min-width:0}.sheet-toolbar input{width:130px;border:1px solid #d0d5dd;border-radius:10px;padding:9px 10px}.sheet-toolbar button{border:0;border-radius:10px;padding:10px 13px;font-weight:800}.sheet-toolbar .close{background:#eef2f6;color:#344054}.sheet-toolbar .print{background:#111827;color:#fff}.payslip{padding:28px;background:#fff;color:#111}.payslip-title{text-align:center;margin:0 0 18px;font-size:26px;letter-spacing:.08em}.payslip-month{text-align:right;font-size:12px;margin:-12px 0 8px}.payslip-scroll{overflow-x:auto}.payslip-table{width:100%;min-width:920px;border-collapse:collapse;table-layout:fixed;font-size:13px}.payslip-table th,.payslip-table td{border:1.4px solid #222;padding:9px 7px;text-align:center;vertical-align:middle}.payslip-table thead th{background:#f2f3f5;font-weight:800}.payslip-table .salary-group{background:#dfe9f4;font-weight:800}.payslip-table .deduct-group{background:#eadfd8;font-weight:800}.payslip-table .detail{text-align:left;padding-left:18px}.payslip-table .money{text-align:right;padding-right:13px;font-variant-numeric:tabular-nums}.payslip-table .strong{font-weight:900}.payslip-table .muted{color:#667085}.payslip-foot{font-size:11px;color:#667085;margin-top:10px;text-align:right}
+@media(min-width:431px){.app{padding-top:28px}}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body.printing{background:#fff}
+  body.printing .app{display:none!important}
+  body.printing .sheet-modal{display:block!important;position:static!important;inset:auto;background:#fff;padding:0;overflow:visible}
+  body.printing .sheet-wrap{width:100%;margin:0;box-shadow:none;border-radius:0;overflow:visible}
+  body.printing .sheet-toolbar{display:none!important}
+  body.printing .payslip{padding:0}
+  body.printing .payslip-table{min-width:0;font-size:10.5pt}
+  body.printing .payslip-table th,body.printing .payslip-table td{padding:6px 5px}
+  body.printing .payslip-title{font-size:19pt;margin-bottom:12px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div class="brand-wrap"><img class="app-icon" src="./icon.svg" alt="" /><div class="brand"><small>월급달력</small><h1>휴일직원 급여</h1></div></div>
+    <div class="badge">휴일직원</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-head"><span>이번 달 예상 실수령액</span><span id="monthTop"></span></div>
+    <strong id="totalPay" class="hero-amount">0원</strong>
+    <p class="hero-note">토·일·공휴일은 기본 출근으로 계산됩니다.</p>
+    <div class="hero-grid">
+      <div><span>출근</span><b id="workedCount">0일</b></div>
+      <div><span>휴무</span><b id="offCount">0일</b></div>
+      <div><span>주휴</span><b id="weeklyCount">0회</b></div>
+      <div><span>공휴일</span><b id="publicCount">0일</b></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="cal-head">
+      <button id="prev" class="nav" aria-label="이전 달">‹</button>
+      <div class="cal-title"><h2 id="monthTitle"></h2><p>쉰 날만 눌러서 체크를 해제하세요</p></div>
+      <button id="next" class="nav" aria-label="다음 달">›</button>
+    </div>
+    <div class="week"><span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="sat">토</span></div>
+    <div id="grid" class="grid"></div>
+    <div class="legend"><span><i class="dot work"></i>출근</span><span><i class="dot off"></i>휴무</span><span><i class="dot pub"></i>공휴일</span></div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><h2>급여 상세</h2><button id="reset" class="link">이번 달 초기화</button></div>
+    <div class="row"><span>기본급 <em>토·일 150,000원/일</em></span><b id="basePay">0원</b></div>
+    <div class="row"><span>주휴수당 <em>150,000원/회</em></span><b id="weeklyPay">0원</b></div>
+    <div class="row"><span>유급휴일수당 <em>150,000원/일</em></span><b id="paidHolidayPay">0원</b></div>
+    <div class="row"><span>휴일근로수당 <em>225,000원/일</em></span><b id="holidayWorkPay">0원</b></div>
+    <div class="row total"><span>급여 합계</span><b id="grossPay">0원</b></div>
+    <div class="notice">계산 기준: 토·일 기본근무는 기본급으로 계산하되, 법정공휴일과 겹친 날은 기본급에서 제외하고 유급휴일수당 + 휴일근로수당으로 계산합니다. 주휴는 같은 주의 토·일을 모두 출근했을 때 1회로 계산합니다.</div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><h2>4대보험 공제</h2><span class="link">명세서 기준</span></div>
+    <div class="row"><span>건강보험</span><input id="health" class="deduct-input" inputmode="numeric" aria-label="건강보험" /></div>
+    <div class="row"><span>장기요양보험</span><input id="care" class="deduct-input" inputmode="numeric" aria-label="장기요양보험" /></div>
+    <div class="row"><span>국민연금</span><input id="pension" class="deduct-input" inputmode="numeric" aria-label="국민연금" /></div>
+    <div class="row"><span>고용보험</span><input id="employment" class="deduct-input" inputmode="numeric" aria-label="고용보험" /></div>
+    <div class="row total"><span>공제 합계</span><b id="deductTotal">0원</b></div>
+    <div class="row total"><span>실수령액</span><b id="netPay" class="net">0원</b></div>
+    <div class="notice">현재는 첨부 명세서의 공제액을 기본값으로 넣었습니다. 금액을 직접 수정하면 1원 단위로 즉시 실수령액에 반영됩니다.</div>
+  </section>
+
+  <div class="actions">
+    <button id="openPayslip" class="btn secondary">급여명세서</button>
+    <button id="savePdf" class="btn primary">PDF 저장</button>
+  </div>
+</main>
+
+<div id="sheetModal" class="sheet-modal" aria-hidden="true">
+  <div class="sheet-wrap">
+    <div class="sheet-toolbar">
+      <div class="left"><strong>급여명세서 미리보기</strong><input id="employeeName" type="text" placeholder="성명 입력" /></div>
+      <div><button id="closeSheet" class="close">닫기</button> <button id="printSheet" class="print">PDF 저장/인쇄</button></div>
+    </div>
+    <section id="payslip" class="payslip">
+      <h2 class="payslip-title">급 여 명 세 서</h2>
+      <div id="payslipMonth" class="payslip-month"></div>
+      <div class="payslip-scroll">
+        <table class="payslip-table">
+          <colgroup><col style="width:6%"><col style="width:10%"><col style="width:7%"><col style="width:19%"><col style="width:15%"><col style="width:15%"><col style="width:12%"><col style="width:16%"></colgroup>
+          <thead>
+            <tr><th rowspan="2">연번</th><th rowspan="2">성명</th><th rowspan="2">구분</th><th rowspan="2">상세내역</th><th rowspan="2">금액</th><th colspan="2">산출내역</th><th rowspan="2">비고</th></tr>
+            <tr><th>금액(원)</th><th>기간(일)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td id="psNo" rowspan="12">1</td><td id="psName" rowspan="12">휴일직원</td><td class="salary-group" rowspan="7">급여</td><td class="detail strong">실수령액</td><td id="psNet" class="money strong">0</td><td></td><td></td><td></td></tr>
+            <tr><td class="detail strong">소계</td><td id="psGross" class="money strong">0</td><td></td><td></td><td></td></tr>
+            <tr><td class="detail">기본급</td><td id="psBase" class="money">0</td><td class="money">150,000</td><td id="psBaseDays">0</td><td></td></tr>
+            <tr><td class="detail">주휴수당</td><td id="psWeekly" class="money">0</td><td class="money">150,000</td><td id="psWeeklyDays">0</td><td>월차수당 포함</td></tr>
+            <tr><td class="detail">유급휴일수당</td><td id="psPaidHoliday" class="money">0</td><td class="money">150,000</td><td id="psPaidHolidayDays">0</td><td></td></tr>
+            <tr><td class="detail">휴일근로수당</td><td id="psHolidayWork" class="money">0</td><td class="money">225,000</td><td id="psHolidayWorkDays">0</td><td></td></tr>
+            <tr><td class="detail">초과근무수당</td><td class="money">-</td><td class="money">225,000</td><td>-</td><td></td></tr>
+            <tr><td class="deduct-group" rowspan="5">공제</td><td class="detail strong">소계</td><td id="psDeductTotal" class="money strong">0</td><td></td><td></td><td></td></tr>
+            <tr><td class="detail">건강보험</td><td id="psHealth" class="money">0</td><td></td><td></td><td></td></tr>
+            <tr><td class="detail">장기요양보험</td><td id="psCare" class="money">0</td><td></td><td></td><td></td></tr>
+            <tr><td class="detail">국민연금</td><td id="psPension" class="money">0</td><td></td><td></td><td></td></tr>
+            <tr><td class="detail">고용보험</td><td id="psEmployment" class="money">0</td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="payslip-foot">월급달력 자동 산출 명세서</div>
+    </section>
+  </div>
+</div>
+
+<script>
+const DAILY=150000, WEEKLY=150000, HOLIDAY_WORK=225000;
+const DEFAULT_DEDUCTIONS={health:79090,care:10390,pension:104500,employment:19800};
+let lastCalc={};
+
+const HOLIDAYS={};
+const loadedHolidayYears=new Set();
+
+function holidayCacheKey(targetYear){return "salary-calendar-holidays-"+targetYear}
+
+async function ensureHolidays(targetYear){
+  if(loadedHolidayYears.has(targetYear)) return;
+
+  const cacheKey=holidayCacheKey(targetYear);
+  try{
+    const cached=JSON.parse(localStorage.getItem(cacheKey)||"null");
+    const fresh=cached && cached.data && cached.savedAt && (Date.now()-cached.savedAt)<30*24*60*60*1000;
+    if(fresh){
+      Object.assign(HOLIDAYS,cached.data);
+      loadedHolidayYears.add(targetYear);
+      return;
+    }
+  }catch{}
+
+  let data=null;
+
+  try{
+    const officialMirror=await fetch("https://cdn.jsdelivr.net/gh/hyunbinseo/open-data@main/data/holidays/"+targetYear+".json",{cache:"no-store"});
+    if(officialMirror.ok){
+      const json=await officialMirror.json();
+      data={};
+      for(const [date,names] of Object.entries(json)){
+        data[date]=Array.isArray(names)?names.join(" · "):String(names);
+      }
+    }
+  }catch{}
+
+  if(!data){
+    try{
+      const fallback=await fetch("https://date.nager.at/api/v3/PublicHolidays/"+targetYear+"/KR",{cache:"no-store"});
+      if(fallback.ok){
+        const json=await fallback.json();
+        data={};
+        for(const item of json){
+          if(item?.date) data[item.date]=item.localName||item.name||"공휴일";
+        }
+      }
+    }catch{}
+  }
+
+  if(data){
+    Object.assign(HOLIDAYS,data);
+    try{localStorage.setItem(cacheKey,JSON.stringify({savedAt:Date.now(),data}))}catch{}
+  }
+  loadedHolidayYears.add(targetYear);
+}
+
+const $=id=>document.getElementById(id);
+const won=n=>Math.round(n).toLocaleString("ko-KR")+"원";
+const pad=n=>String(n).padStart(2,"0");
+const keyOf=(y,m,d)=>y+"-"+pad(m+1)+"-"+pad(d);
+
+const now=new Date();
+let year=now.getFullYear(), month=now.getMonth();
+if(year<2026||year>2026){year=2026;month=9}
+
+function storageKey(){return "salary-calendar-off-"+year+"-"+pad(month+1)}
+function getOff(){return new Set(JSON.parse(localStorage.getItem(storageKey())||"[]"))}
+function saveOff(set){localStorage.setItem(storageKey(),JSON.stringify([...set]))}
+function getDeductions(){
+  const saved=JSON.parse(localStorage.getItem("salary-calendar-deductions")||"null");
+  return saved||{...DEFAULT_DEDUCTIONS};
+}
+function saveDeductions(){
+  const data={};
+  for(const id of Object.keys(DEFAULT_DEDUCTIONS)) data[id]=Number(String($(id).value).replace(/[^0-9]/g,""))||0;
+  localStorage.setItem("salary-calendar-deductions",JSON.stringify(data));
+  return data;
+}
+function loadDeductionInputs(){
+  const data=getDeductions();
+  for(const id of Object.keys(DEFAULT_DEDUCTIONS)) $(id).value=data[id].toLocaleString("ko-KR");
+}
+
+function isScheduled(y,m,d){
+  const date=new Date(y,m,d);
+  const dow=date.getDay();
+  return dow===0||dow===6||Boolean(HOLIDAYS[keyOf(y,m,d)]);
+}
+
+function scheduledDates(){
+  const days=new Date(year,month+1,0).getDate(), out=[];
+  for(let d=1;d<=days;d++) if(isScheduled(year,month,d)) out.push(d);
+  return out;
+}
+
+function weekStartMonday(date){
+  const x=new Date(date);
+  const dow=(x.getDay()+6)%7;
+  x.setDate(x.getDate()-dow);
+  x.setHours(0,0,0,0);
+  return x;
+}
+
+function weeklyAllowanceCount(workedSet){
+  const groups=new Map();
+  for(const d of scheduledDates()){
+    const date=new Date(year,month,d);
+    if(date.getDay()!==0 && date.getDay()!==6) continue;
+    const monday=weekStartMonday(date).toISOString().slice(0,10);
+    if(!groups.has(monday)) groups.set(monday,{sat:null,sun:null});
+    if(date.getDay()===6) groups.get(monday).sat=d;
+    if(date.getDay()===0) groups.get(monday).sun=d;
+  }
+  let count=0;
+  for(const g of groups.values()){
+    if(g.sat && g.sun && workedSet.has(g.sat) && workedSet.has(g.sun)) count++;
+  }
+  return count;
+}
+
+async function render(){
+  await ensureHolidays(year);
+  $("monthTitle").textContent=year+"년 "+(month+1)+"월";
+  $("monthTop").textContent=(month+1)+"월";
+  const grid=$("grid"); grid.innerHTML="";
+  const first=new Date(year,month,1).getDay();
+  const totalDays=new Date(year,month+1,0).getDate();
+  const off=getOff();
+
+  for(let i=0;i<first;i++){
+    const b=document.createElement("button"); b.className="day blank"; grid.appendChild(b);
+  }
+
+  for(let d=1;d<=totalDays;d++){
+    const date=new Date(year,month,d), dow=date.getDay(), k=keyOf(year,month,d);
+    const pub=HOLIDAYS[k], scheduled=isScheduled(year,month,d);
+    const btn=document.createElement("button");
+    btn.className="day "+(scheduled?"workday":"normal")+(pub?" public":"");
+    btn.innerHTML="<span>"+d+"</span>"+(pub?'<span class="tag">'+pub+"</span>":"");
+    if(scheduled){
+      if(off.has(d)) btn.classList.add("off"); else btn.classList.add("selected");
+      btn.addEventListener("click",()=>{
+        const next=getOff();
+        if(next.has(d)) next.delete(d); else next.add(d);
+        saveOff(next); render();
+      });
+    } else btn.disabled=true;
+    grid.appendChild(btn);
+  }
+
+  calculate();
+}
+
+function calculate(){
+  const off=getOff();
+  const scheduled=scheduledDates();
+  const worked=new Set(scheduled.filter(d=>!off.has(d)));
+  const publicWorked=[...worked].filter(d=>Boolean(HOLIDAYS[keyOf(year,month,d)]));
+  const weekendWorked=[...worked].filter(d=>{
+    const dow=new Date(year,month,d).getDay();
+    const isPublic=Boolean(HOLIDAYS[keyOf(year,month,d)]);
+    return (dow===0||dow===6) && !isPublic;
+  });
+  const weeklyCount=weeklyAllowanceCount(worked);
+
+  const base=weekendWorked.length*DAILY;
+  const weekly=weeklyCount*WEEKLY;
+  const paidHoliday=publicWorked.length*DAILY;
+  const holidayWork=publicWorked.length*HOLIDAY_WORK;
+  const gross=base+weekly+paidHoliday+holidayWork;
+  const deductions=getDeductions();
+  const deductTotal=Object.values(deductions).reduce((sum,n)=>sum+Number(n||0),0);
+  const net=gross-deductTotal;
+
+  $("workedCount").textContent=worked.size+"일";
+  $("offCount").textContent=off.size+"일";
+  $("weeklyCount").textContent=weeklyCount+"회";
+  $("publicCount").textContent=publicWorked.length+"일";
+  $("basePay").textContent=won(base);
+  $("weeklyPay").textContent=won(weekly);
+  $("paidHolidayPay").textContent=won(paidHoliday);
+  $("holidayWorkPay").textContent=won(holidayWork);
+  $("grossPay").textContent=won(gross);
+  $("deductTotal").textContent=won(deductTotal);
+  $("netPay").textContent=won(net);
+  $("totalPay").textContent=won(net);
+  lastCalc={base,weekly,paidHoliday,holidayWork,gross,deductTotal,net,baseDays:weekendWorked.length,weeklyDays:weeklyCount,paidHolidayDays:publicWorked.length,holidayWorkDays:publicWorked.length,deductions};
+}
+
+$("prev").onclick=()=>{month--;if(month<0){month=11;year--}render()}
+$("next").onclick=()=>{month++;if(month>11){month=0;year++}render()}
+$("reset").onclick=()=>{localStorage.removeItem(storageKey());render()}
+function plainWon(n){return Math.round(Number(n||0)).toLocaleString("ko-KR")}
+function updatePayslip(){
+  const c=lastCalc;
+  const name=($("employeeName").value||localStorage.getItem("salary-calendar-name")||"휴일직원").trim();
+  $("employeeName").value=name;
+  $("psName").textContent=name;
+  $("payslipMonth").textContent=year+"년 "+(month+1)+"월 급여";
+  $("psNet").textContent=plainWon(c.net);
+  $("psGross").textContent=plainWon(c.gross);
+  $("psBase").textContent=plainWon(c.base); $("psBaseDays").textContent=c.baseDays||0;
+  $("psWeekly").textContent=plainWon(c.weekly); $("psWeeklyDays").textContent=c.weeklyDays||0;
+  $("psPaidHoliday").textContent=plainWon(c.paidHoliday); $("psPaidHolidayDays").textContent=c.paidHolidayDays||0;
+  $("psHolidayWork").textContent=plainWon(c.holidayWork); $("psHolidayWorkDays").textContent=c.holidayWorkDays||0;
+  $("psDeductTotal").textContent=plainWon(c.deductTotal);
+  $("psHealth").textContent=plainWon(c.deductions?.health); $("psCare").textContent=plainWon(c.deductions?.care);
+  $("psPension").textContent=plainWon(c.deductions?.pension); $("psEmployment").textContent=plainWon(c.deductions?.employment);
+}
+function openPayslip(){updatePayslip();$("sheetModal").classList.add("open");$("sheetModal").setAttribute("aria-hidden","false")}
+function closePayslip(){$("sheetModal").classList.remove("open");$("sheetModal").setAttribute("aria-hidden","true")}
+function printPayslip(){
+  updatePayslip();
+  const oldTitle=document.title;
+  document.title=year+"년_"+(month+1)+"월_급여명세서";
+  document.body.classList.add("printing");
+  window.print();
+  setTimeout(()=>{document.body.classList.remove("printing");document.title=oldTitle},300);
+}
+$("openPayslip").onclick=openPayslip;
+$("closeSheet").onclick=closePayslip;
+$("printSheet").onclick=printPayslip;
+$("savePdf").onclick=()=>{openPayslip();setTimeout(printPayslip,80)};
+$("sheetModal").addEventListener("click",e=>{if(e.target===$("sheetModal"))closePayslip()});
+$("employeeName").value=localStorage.getItem("salary-calendar-name")||"휴일직원";
+$("employeeName").addEventListener("input",e=>{localStorage.setItem("salary-calendar-name",e.target.value);$("psName").textContent=e.target.value||"휴일직원"});
+window.addEventListener("afterprint",()=>document.body.classList.remove("printing"));
+for(const id of Object.keys(DEFAULT_DEDUCTIONS)){
+  $(id).addEventListener("focus",e=>{e.target.value=String(e.target.value).replace(/[^0-9]/g,"")});
+  $(id).addEventListener("blur",e=>{saveDeductions();e.target.value=(Number(e.target.value)||0).toLocaleString("ko-KR");calculate()});
+  $(id).addEventListener("input",()=>{saveDeductions();calculate()});
+}
+loadDeductionInputs();
+render();
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
