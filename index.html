@@ -16,6 +16,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif}
 button,input{font:inherit}
+.row em i{color:#dc2626;font-style:normal;font-weight:800}
 button{cursor:pointer}
 .app{width:min(100%,430px);min-height:100vh;margin:auto;padding:18px 14px 42px}
 .top{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 14px}
@@ -95,11 +96,11 @@ button{cursor:pointer}
 
   <section class="card">
     <div class="section-head"><h2>급여 상세</h2><button id="reset" class="link">이번 달 초기화</button></div>
-    <div class="row"><span>토요일 근무 <em>95,000원/일</em></span><b id="basePay">0원</b></div>
-    <div class="row"><span>일요일 근무 <em>150,000원/일</em></span><b id="sundayPay">0원</b></div>
-    <div class="row"><span>주휴수당 <em>95,000원/회</em></span><b id="weeklyPay">0원</b></div>
-    <div class="row"><span>유급휴일수당 <em>95,000원/일</em></span><b id="paidHolidayPay">0원</b></div>
-    <div class="row"><span>공휴일 근로수당 <em>150,000원/일</em></span><b id="holidayWorkPay">0원</b></div>
+    <div class="row"><span>토요일 근무 <em>95,000원/일 · <i id="satTimes">0일</i></em></span><b id="basePay">0원</b></div>
+    <div class="row"><span>일요일 근무 <em>150,000원/일 · <i id="sunTimes">0일</i></em></span><b id="sundayPay">0원</b></div>
+    <div class="row"><span>주휴수당 <em>95,000원/회 · <i id="weekTimes">0회</i></em></span><b id="weeklyPay">0원</b></div>
+    <div class="row"><span>유급휴일수당 <em>95,000원/일 · <i id="paidTimes">0일</i></em></span><b id="paidHolidayPay">0원</b></div>
+    <div class="row"><span>공휴일 근로수당 <em>150,000원/일 · <i id="holidayTimes">0일</i></em></span><b id="holidayWorkPay">0원</b></div>
     <div class="row total"><span>급여 합계</span><b id="grossPay">0원</b></div>
     <div class="notice">재계약 잠정 기준: 토요일 95,000원, 일요일 150,000원. 공휴일 출근은 유급휴일수당 95,000원 + 공휴일 근로수당 150,000원으로 총 245,000원을 계산합니다. 재계약서에 공휴일 수당 기준이 다르게 명시되어 있으면 변경이 필요합니다. 주휴는 95,000원(임시 판정)입니다.</div>
   </section>
@@ -349,6 +350,11 @@ function calculate(){
   $("offCount").textContent=off.size+"일";
   $("weeklyCount").textContent=weeklyCount+"회";
   $("publicCount").textContent=publicWorked.length+"일";
+  $("satTimes").textContent=saturdayWorked.length+"일";
+  $("sunTimes").textContent=sundayWorked.length+"일";
+  $("weekTimes").textContent=weeklyCount+"회";
+  $("paidTimes").textContent=publicWorked.length+"일";
+  $("holidayTimes").textContent=publicWorked.length+"일";
   $("basePay").textContent=won(base);
   $("weeklyPay").textContent=won(weekly);
   $("sundayPay").textContent=won(sundayPay);
