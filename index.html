@@ -73,6 +73,7 @@ button{cursor:pointer}
     <div class="hero-head"><span>이번 달 예상 실수령액</span><span id="monthTop"></span></div>
     <strong id="totalPay" class="hero-amount">0원</strong>
     <p class="hero-note">토·일·공휴일은 기본 출근으로 계산됩니다.</p>
+    <div id="annualAverage" class="notice"></div>
     <div class="hero-grid">
       <div><span>출근</span><b id="workedCount">0일</b></div>
       <div><span>휴무</span><b id="offCount">0일</b></div>
@@ -278,6 +279,10 @@ function weeklyAllowanceCount(workedSet){
   return count;
 }
 
+function updateAnnualAverage(){
+let sum=0;for(let m=0;m<12;m++){let a=0,b=0,c=0,w=new Map();for(let d=1;d<=new Date(year,m+1,0).getDate();d++){let x=new Date(year,m,d),n=x.getDay(),p=!!HOLIDAYS[keyOf(year,m,d)];if(p)c++;else if(n===6)a++;else if(n===0)b++;if(n===0||n===6){let k=weekStartMonday(x).getTime();if(!w.has(k))w.set(k,[]);w.get(k).push(n)}}sum+=a*DAILY+b*SUNDAY_WORK+c*(PAID_HOLIDAY+HOLIDAY_WORK)+[...w.values()].filter(x=>x.includes(0)&&x.includes(6)).length*WEEKLY}
+$("annualAverage").textContent=year+"년 예상 연봉 "+won(sum)+" · 세전 월평균 "+won(sum/12)+" (결근 없음 기준)";
+}
 async function render(){
   await ensureHolidays(year);
   $("monthTitle").textContent=year+"년 "+(month+1)+"월";
@@ -309,6 +314,7 @@ async function render(){
   }
 
   calculate();
+  updateAnnualAverage();
 }
 
 function calculate(){
