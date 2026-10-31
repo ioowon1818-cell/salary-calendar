@@ -1,4 +1,4 @@
-const CACHE_NAME = "salary-calendar-v3";
+const CACHE_NAME = "salary-calendar-v4";
 const APP_ASSETS = [
   "./",
   "./index.html",
