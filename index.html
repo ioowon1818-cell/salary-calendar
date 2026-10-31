@@ -96,10 +96,11 @@ button{cursor:pointer}
     <div class="section-head"><h2>급여 상세</h2><button id="reset" class="link">이번 달 초기화</button></div>
     <div class="row"><span>기본급 <em>토요일 95,000원/일</em></span><b id="basePay">0원</b></div>
     <div class="row"><span>주휴수당 <em>95,000원/회</em></span><b id="weeklyPay">0원</b></div>
-    <div class="row"><span>유급휴일수당 <em>별도 지급 미확인</em></span><b id="paidHolidayPay">0원</b></div>
-    <div class="row"><span>일·공휴일 근무급여 <em>150,000원/일</em></span><b id="holidayWorkPay">0원</b></div>
+    <div class="row"><span>일요일 근무 <em>150,000원/일</em></span><b id="sundayPay">0원</b></div>
+    <div class="row"><span>유급휴일수당 <em>95,000원/일</em></span><b id="paidHolidayPay">0원</b></div>
+    <div class="row"><span>공휴일 근로수당 <em>150,000원/일</em></span><b id="holidayWorkPay">0원</b></div>
     <div class="row total"><span>급여 합계</span><b id="grossPay">0원</b></div>
-    <div class="notice">재계약 기준: 일반 토요일 95,000원, 일요일 및 법정공휴일 150,000원(겹쳐도 하루 한 번). 주휴는 현재 임시 규칙인 토·일 모두 출근 시 95,000원으로 계산합니다. 유급휴일 별도 지급 여부는 계약서 확인 전까지 추가하지 않습니다.</div>
+    <div class="notice">재계약 잠정 기준: 토요일 95,000원, 일요일 150,000원. 공휴일 출근은 유급휴일수당 95,000원 + 공휴일 근로수당 150,000원으로 총 245,000원을 계산합니다. 재계약서에 공휴일 수당 기준이 다르게 명시되어 있으면 변경이 필요합니다. 주휴는 95,000원(임시 판정)입니다.</div>
   </section>
 
   <section class="card">
@@ -140,9 +141,9 @@ button{cursor:pointer}
             <tr><td class="detail strong">소계</td><td id="psGross" class="money strong">0</td><td></td><td></td><td></td></tr>
             <tr><td class="detail">기본급</td><td id="psBase" class="money">0</td><td class="money">95,000</td><td id="psBaseDays">0</td><td></td></tr>
             <tr><td class="detail">주휴수당</td><td id="psWeekly" class="money">0</td><td class="money">95,000</td><td id="psWeeklyDays">0</td><td>월차수당 포함</td></tr>
-            <tr><td class="detail">유급휴일수당 (별도 미확인)</td><td id="psPaidHoliday" class="money">0</td><td class="money">-</td><td id="psPaidHolidayDays">0</td><td></td></tr>
-            <tr><td class="detail">일·공휴일 근무급여</td><td id="psHolidayWork" class="money">0</td><td class="money">150,000</td><td id="psHolidayWorkDays">0</td><td></td></tr>
-            <tr><td class="detail">초과근무수당</td><td class="money">-</td><td class="money">150,000</td><td>-</td><td></td></tr>
+            <tr><td class="detail">유급휴일수당</td><td id="psPaidHoliday" class="money">0</td><td class="money">95,000</td><td id="psPaidHolidayDays">0</td><td></td></tr>
+            <tr><td class="detail">공휴일 근로수당</td><td id="psHolidayWork" class="money">0</td><td class="money">150,000</td><td id="psHolidayWorkDays">0</td><td></td></tr>
+            <tr><td class="detail">일요일 근무급여</td><td id="psSunday" class="money">0</td><td class="money">150,000</td><td id="psSundayDays">0</td><td></td></tr>
             <tr><td class="deduct-group" rowspan="5">공제</td><td class="detail strong">소계</td><td id="psDeductTotal" class="money strong">0</td><td></td><td></td><td></td></tr>
             <tr><td class="detail">건강보험</td><td id="psHealth" class="money">0</td><td></td><td></td><td></td></tr>
             <tr><td class="detail">장기요양보험</td><td id="psCare" class="money">0</td><td></td><td></td><td></td></tr>
@@ -157,7 +158,7 @@ button{cursor:pointer}
 </div>
 
 <script>
-const DAILY=95000, WEEKLY=95000, HOLIDAY_WORK=150000;
+const DAILY=95000, WEEKLY=95000, SUNDAY_WORK=150000, PAID_HOLIDAY=95000, HOLIDAY_WORK=150000;
 const DEFAULT_DEDUCTIONS={health:79090,care:10390,pension:104500,employment:19800};
 let lastCalc={};
 
@@ -320,14 +321,15 @@ function calculate(){
     const isPublic=Boolean(HOLIDAYS[keyOf(year,month,d)]);
     return dow===6 && !isPublic;
   });
-  const sundayOrHolidayWorked=[...worked].filter(d=>new Date(year,month,d).getDay()===0 || Boolean(HOLIDAYS[keyOf(year,month,d)]));
+  const sundayWorked=[...worked].filter(d=>new Date(year,month,d).getDay()===0 && !HOLIDAYS[keyOf(year,month,d)]);
   const weeklyCount=weeklyAllowanceCount(worked);
 
   const base=saturdayWorked.length*DAILY;
   const weekly=weeklyCount*WEEKLY;
-  const paidHoliday=0;
-  const holidayWork=sundayOrHolidayWorked.length*HOLIDAY_WORK;
-  const gross=base+weekly+paidHoliday+holidayWork;
+  const sundayPay=sundayWorked.length*SUNDAY_WORK;
+  const paidHoliday=publicWorked.length*PAID_HOLIDAY;
+  const holidayWork=publicWorked.length*HOLIDAY_WORK;
+  const gross=base+weekly+sundayPay+paidHoliday+holidayWork;
   const deductions=getDeductions();
   const deductTotal=Object.values(deductions).reduce((sum,n)=>sum+Number(n||0),0);
   const net=gross-deductTotal;
@@ -338,13 +340,14 @@ function calculate(){
   $("publicCount").textContent=publicWorked.length+"일";
   $("basePay").textContent=won(base);
   $("weeklyPay").textContent=won(weekly);
+  $("sundayPay").textContent=won(sundayPay);
   $("paidHolidayPay").textContent=won(paidHoliday);
   $("holidayWorkPay").textContent=won(holidayWork);
   $("grossPay").textContent=won(gross);
   $("deductTotal").textContent=won(deductTotal);
   $("netPay").textContent=won(net);
   $("totalPay").textContent=won(net);
-  lastCalc={base,weekly,paidHoliday,holidayWork,gross,deductTotal,net,baseDays:saturdayWorked.length,weeklyDays:weeklyCount,paidHolidayDays:0,holidayWorkDays:sundayOrHolidayWorked.length,deductions};
+  lastCalc={base,weekly,sundayPay,paidHoliday,holidayWork,gross,deductTotal,net,baseDays:saturdayWorked.length,weeklyDays:weeklyCount,sundayDays:sundayWorked.length,paidHolidayDays:publicWorked.length,holidayWorkDays:publicWorked.length,deductions};
 }
 
 $("prev").onclick=()=>{month--;if(month<0){month=11;year--}render()}
@@ -361,6 +364,7 @@ function updatePayslip(){
   $("psGross").textContent=plainWon(c.gross);
   $("psBase").textContent=plainWon(c.base); $("psBaseDays").textContent=c.baseDays||0;
   $("psWeekly").textContent=plainWon(c.weekly); $("psWeeklyDays").textContent=c.weeklyDays||0;
+  $("psSunday").textContent=plainWon(c.sundayPay); $("psSundayDays").textContent=c.sundayDays||0;
   $("psPaidHoliday").textContent=plainWon(c.paidHoliday); $("psPaidHolidayDays").textContent=c.paidHolidayDays||0;
   $("psHolidayWork").textContent=plainWon(c.holidayWork); $("psHolidayWorkDays").textContent=c.holidayWorkDays||0;
   $("psDeductTotal").textContent=plainWon(c.deductTotal);
