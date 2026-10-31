@@ -105,14 +105,14 @@ button{cursor:pointer}
   </section>
 
   <section class="card">
-    <div class="section-head"><h2>4대보험 공제</h2><span class="link">명세서 기준</span></div>
+    <div class="section-head"><h2>4대보험 공제</h2><span class="link">월 180만원 추정 기준</span></div>
     <div class="row"><span>건강보험</span><input id="health" class="deduct-input" inputmode="numeric" aria-label="건강보험" /></div>
     <div class="row"><span>장기요양보험</span><input id="care" class="deduct-input" inputmode="numeric" aria-label="장기요양보험" /></div>
     <div class="row"><span>국민연금</span><input id="pension" class="deduct-input" inputmode="numeric" aria-label="국민연금" /></div>
     <div class="row"><span>고용보험</span><input id="employment" class="deduct-input" inputmode="numeric" aria-label="고용보험" /></div>
     <div class="row total"><span>공제 합계</span><b id="deductTotal">0원</b></div>
     <div class="row total"><span>실수령액</span><b id="netPay" class="net">0원</b></div>
-    <div class="notice">현재는 첨부 명세서의 공제액을 기본값으로 넣었습니다. 금액을 직접 수정하면 1원 단위로 즉시 실수령액에 반영됩니다.</div>
+    <div class="notice">2026년 월평균 세전급여 180만원으로 추산한 근로자 부담 4대보험입니다. 실제 공제액은 고성군청 신고 기준과 고지서에 따라 달라질 수 있으며, 직접 수정할 수 있습니다.</div>
   </section>
 
   <div class="actions">
@@ -160,7 +160,7 @@ button{cursor:pointer}
 
 <script>
 const DAILY=95000, WEEKLY=95000, SUNDAY_WORK=150000, PAID_HOLIDAY=95000, HOLIDAY_WORK=150000;
-const DEFAULT_DEDUCTIONS={health:79090,care:10390,pension:104500,employment:19800};
+const DEFAULT_DEDUCTIONS={health:64710,care:8500,pension:85500,employment:16200};
 let lastCalc={};
 
 const HOLIDAYS={};
@@ -229,6 +229,11 @@ function getOff(){return new Set(JSON.parse(localStorage.getItem(storageKey())||
 function saveOff(set){localStorage.setItem(storageKey(),JSON.stringify([...set]))}
 function getDeductions(){
   const saved=JSON.parse(localStorage.getItem("salary-calendar-deductions")||"null");
+  if(localStorage.getItem("salary-calendar-insurance-base")!=="1800000"){
+    localStorage.setItem("salary-calendar-insurance-base","1800000");
+    localStorage.setItem("salary-calendar-deductions",JSON.stringify(DEFAULT_DEDUCTIONS));
+    return {...DEFAULT_DEDUCTIONS};
+  }
   return saved||{...DEFAULT_DEDUCTIONS};
 }
 function saveDeductions(){
