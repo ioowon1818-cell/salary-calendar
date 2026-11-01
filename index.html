@@ -101,6 +101,7 @@ button{cursor:pointer}
     <div class="row"><span>주휴수당 <em>95,000원/회 · <i id="weekTimes">0회</i></em></span><b id="weeklyPay">0원</b></div>
     <div class="row"><span>유급휴일수당 <em>95,000원/일 · <i id="paidTimes">0일</i></em></span><b id="paidHolidayPay">0원</b></div>
     <div class="row"><span>공휴일 근로수당 <em>150,000원/일 · <i id="holidayTimes">0일</i></em></span><b id="holidayWorkPay">0원</b></div>
+    <div class="row"><span>월차수당 <em>95,000원/월 · <i id="monthlyTimes">0회</i></em></span><b id="monthlyPay">0원</b></div>
     <div class="row total"><span>급여 합계</span><b id="grossPay">0원</b></div>
     <div class="notice">재계약 잠정 기준: 토요일 95,000원, 일요일 150,000원. 공휴일 출근은 유급휴일수당 95,000원 + 공휴일 근로수당 150,000원으로 총 245,000원을 계산합니다. 재계약서에 공휴일 수당 기준이 다르게 명시되어 있으면 변경이 필요합니다. 주휴는 95,000원(임시 판정)입니다.</div>
   </section>
@@ -139,13 +140,14 @@ button{cursor:pointer}
             <tr><th>금액(원)</th><th>기간(일)</th></tr>
           </thead>
           <tbody>
-            <tr><td id="psNo" rowspan="12">1</td><td id="psName" rowspan="12">휴일직원</td><td class="salary-group" rowspan="7">급여</td><td class="detail strong">실수령액</td><td id="psNet" class="money strong">0</td><td></td><td></td><td></td></tr>
+            <tr><td id="psNo" rowspan="13">1</td><td id="psName" rowspan="13">휴일직원</td><td class="salary-group" rowspan="8">급여</td><td class="detail strong">실수령액</td><td id="psNet" class="money strong">0</td><td></td><td></td><td></td></tr>
             <tr><td class="detail strong">소계</td><td id="psGross" class="money strong">0</td><td></td><td></td><td></td></tr>
             <tr><td class="detail">기본급</td><td id="psBase" class="money">0</td><td class="money">95,000</td><td id="psBaseDays">0</td><td></td></tr>
-            <tr><td class="detail">주휴수당</td><td id="psWeekly" class="money">0</td><td class="money">95,000</td><td id="psWeeklyDays">0</td><td>월차수당 포함</td></tr>
+            <tr><td class="detail">주휴수당</td><td id="psWeekly" class="money">0</td><td class="money">95,000</td><td id="psWeeklyDays">0</td><td></td></tr>
             <tr><td class="detail">유급휴일수당</td><td id="psPaidHoliday" class="money">0</td><td class="money">95,000</td><td id="psPaidHolidayDays">0</td><td></td></tr>
             <tr><td class="detail">공휴일 근로수당</td><td id="psHolidayWork" class="money">0</td><td class="money">150,000</td><td id="psHolidayWorkDays">0</td><td></td></tr>
             <tr><td class="detail">일요일 근무급여</td><td id="psSunday" class="money">0</td><td class="money">150,000</td><td id="psSundayDays">0</td><td></td></tr>
+            <tr><td class="detail">월차수당</td><td id="psMonthly" class="money">0</td><td class="money">95,000</td><td id="psMonthlyDays">0</td><td>월 전일 출근</td></tr>
             <tr><td class="deduct-group" rowspan="5">공제</td><td class="detail strong">소계</td><td id="psDeductTotal" class="money strong">0</td><td></td><td></td><td></td></tr>
             <tr><td class="detail">건강보험</td><td id="psHealth" class="money">0</td><td></td><td></td><td></td></tr>
             <tr><td class="detail">장기요양보험</td><td id="psCare" class="money">0</td><td></td><td></td><td></td></tr>
@@ -286,7 +288,7 @@ function weeklyAllowanceCount(workedSet){
 }
 
 function updateAnnualAverage(){
-let sum=0;for(let m=0;m<12;m++){let a=0,b=0,c=0,w=new Map();for(let d=1;d<=new Date(year,m+1,0).getDate();d++){let x=new Date(year,m,d),n=x.getDay(),p=!!HOLIDAYS[keyOf(year,m,d)];if(p)c++;else if(n===6)a++;else if(n===0)b++;if(n===0||n===6){let k=weekStartMonday(x).getTime();if(!w.has(k))w.set(k,[]);w.get(k).push(n)}}sum+=a*DAILY+b*SUNDAY_WORK+c*(PAID_HOLIDAY+HOLIDAY_WORK)+[...w.values()].filter(x=>x.includes(0)&&x.includes(6)).length*WEEKLY}
+let sum=0;for(let m=0;m<12;m++){let a=0,b=0,c=0,w=new Map();for(let d=1;d<=new Date(year,m+1,0).getDate();d++){let x=new Date(year,m,d),n=x.getDay(),p=!!HOLIDAYS[keyOf(year,m,d)];if(p)c++;else if(n===6)a++;else if(n===0)b++;if(n===0||n===6){let k=weekStartMonday(x).getTime();if(!w.has(k))w.set(k,[]);w.get(k).push(n)}}sum+=a*DAILY+b*SUNDAY_WORK+c*(PAID_HOLIDAY+HOLIDAY_WORK)+[...w.values()].filter(x=>x.includes(0)&&x.includes(6)).length*WEEKLY+DAILY}
 $("annualAverage").textContent=year+"년 예상 연봉 "+won(sum)+" · 세전 월평균 "+won(sum/12)+" (결근 없음 기준)";
 }
 async function render(){
@@ -341,7 +343,8 @@ function calculate(){
   const sundayPay=sundayWorked.length*SUNDAY_WORK;
   const paidHoliday=publicWorked.length*PAID_HOLIDAY;
   const holidayWork=publicWorked.length*HOLIDAY_WORK;
-  const gross=base+weekly+sundayPay+paidHoliday+holidayWork;
+  const monthlyAllowance=scheduled.length>0 && worked.size===scheduled.length ? DAILY : 0;
+  const gross=base+weekly+sundayPay+paidHoliday+holidayWork+monthlyAllowance;
   const deductions=getDeductions();
   const deductTotal=Object.values(deductions).reduce((sum,n)=>sum+Number(n||0),0);
   const net=gross-deductTotal;
@@ -360,11 +363,13 @@ function calculate(){
   $("sundayPay").textContent=won(sundayPay);
   $("paidHolidayPay").textContent=won(paidHoliday);
   $("holidayWorkPay").textContent=won(holidayWork);
+  $("monthlyTimes").textContent=monthlyAllowance?"1회":"0회";
+  $("monthlyPay").textContent=won(monthlyAllowance);
   $("grossPay").textContent=won(gross);
   $("deductTotal").textContent=won(deductTotal);
   $("netPay").textContent=won(net);
   $("totalPay").textContent=won(net);
-  lastCalc={base,weekly,sundayPay,paidHoliday,holidayWork,gross,deductTotal,net,baseDays:saturdayWorked.length,weeklyDays:weeklyCount,sundayDays:sundayWorked.length,paidHolidayDays:publicWorked.length,holidayWorkDays:publicWorked.length,deductions};
+  lastCalc={base,weekly,sundayPay,paidHoliday,holidayWork,monthlyAllowance,gross,deductTotal,net,baseDays:saturdayWorked.length,weeklyDays:weeklyCount,sundayDays:sundayWorked.length,paidHolidayDays:publicWorked.length,holidayWorkDays:publicWorked.length,deductions};
 }
 
 $("prev").onclick=()=>{month--;if(month<0){month=11;year--}render()}
@@ -384,6 +389,7 @@ function updatePayslip(){
   $("psSunday").textContent=plainWon(c.sundayPay); $("psSundayDays").textContent=c.sundayDays||0;
   $("psPaidHoliday").textContent=plainWon(c.paidHoliday); $("psPaidHolidayDays").textContent=c.paidHolidayDays||0;
   $("psHolidayWork").textContent=plainWon(c.holidayWork); $("psHolidayWorkDays").textContent=c.holidayWorkDays||0;
+  $("psMonthly").textContent=plainWon(c.monthlyAllowance); $("psMonthlyDays").textContent=c.monthlyAllowance?1:0;
   $("psDeductTotal").textContent=plainWon(c.deductTotal);
   $("psHealth").textContent=plainWon(c.deductions?.health); $("psCare").textContent=plainWon(c.deductions?.care);
   $("psPension").textContent=plainWon(c.deductions?.pension); $("psEmployment").textContent=plainWon(c.deductions?.employment);
